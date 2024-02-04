@@ -21,6 +21,8 @@ class FootBeatActivity : AppCompatActivity() {
     private var paceMinView: EditText? = null
     private var paceSecView: EditText? = null
 
+    private var goalTextView: TextView? = null
+
     private var songTitleTextView: TextView? = null
     private var bpmTextView: TextView? = null
 
@@ -36,6 +38,8 @@ class FootBeatActivity : AppCompatActivity() {
         heightView = findViewById(R.id.editTextHeight)
         paceMinView = findViewById(R.id.editTextMinutes)
         paceSecView = findViewById(R.id.editTextSeconds)
+
+        goalTextView = findViewById(R.id.goalTextView)
 
         songTitleTextView = findViewById(R.id.songTitleTextView)
         bpmTextView = findViewById(R.id.bpmTextView)
@@ -64,14 +68,16 @@ class FootBeatActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun calculateCadence(height:Int, minutes:Int, seconds:Int) {
 
-        val stride_length = height * 0.45
+        val stride_length = height * 0.45 * 0.01
         val pace = minutes + (seconds/60)
-        val stride = 1 / (1000 * stride_length * pace)
+        val stride = 1000 / (stride_length * pace)
 
         val csvResourceId = R.raw.music
         val inputStream: InputStream = resources.openRawResource(csvResourceId)
 
         val recommendation = findClosestTrack(readCsv(inputStream), stride/2)
+
+        goalTextView!!.text = String.format("Your steps per minute: " + stride.toInt().toString())
 
         if (songTitleTextView == null || bpmTextView == null){
             songTitleTextView!!.text = "Not found"
@@ -91,18 +97,24 @@ class FootBeatActivity : AppCompatActivity() {
         var line: String?
 
         while (reader.readLine().also { line = it } != null) {
-            val columns = line!!.split(",")
+            try {
+                val columns = line!!.split(",")
 
-            val track = Song(
-                track_id = columns[1],
-                track_name = columns[2],
-                track_artist = columns[3],
-                track_album_id = columns[4],
-                tempo = columns[5].toDouble(),
-                duration_ms = columns[6].toInt()
-            )
+                val track = Song(
+                    track_id = columns[1],
+                    track_name = columns[2],
+                    track_artist = columns[3],
+                    track_album_id = columns[4],
+                    tempo = columns[5].toDouble(),
+                    duration_ms = columns[6].toInt()
+                )
 
-            trackList.add(track)
+                trackList.add(track)
+            } catch (e: Exception) {
+                // Handle the exception (e.g., log it or print an error message)
+                // Optionally, you can skip the current line and continue with the next iteration
+                e.printStackTrace()
+            }
         }
         return trackList
     }
