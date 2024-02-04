@@ -9,20 +9,20 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 
-import co.tryterra.terrartandroid.TerraRT
-import co.tryterra.terrartandroid.enums.Connections
-import co.tryterra.terrartandroid.enums.DataTypes
 import java.io.InputStream
+import kotlin.math.abs
 
 
 class FootBeatActivity : AppCompatActivity() {
-    private lateinit var terraRT: TerraRT
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
 
     private var heightView: EditText? = null
     private var paceMinView: EditText? = null
     private var paceSecView: EditText? = null
+
+    private var songTitleTextView: TextView? = null
+    private var bpmTextView: TextView? = null
 
     private var errorMessageTextView: TextView? = null
 
@@ -37,17 +37,12 @@ class FootBeatActivity : AppCompatActivity() {
         paceMinView = findViewById(R.id.editTextMinutes)
         paceSecView = findViewById(R.id.editTextSeconds)
 
+        songTitleTextView = findViewById(R.id.songTitleTextView)
+        bpmTextView = findViewById(R.id.bpmTextView)
+
         errorMessageTextView = findViewById(R.id.errorMessageLabel)
         errorMessageTextView?.visibility = TextView.GONE
 
-        terraRT = TerraRT(
-            DEVID,
-            this,
-            "REFERENCE_ID"
-        ){
-            //Generate an SDK token: https://docs.tryterra.co/reference/generate-authentication-token
-            terraRT.initConnection("250c68b9c21b78e40e7a3285a2d538d3bc24aabd3b4c76a782fb0a571ca4501d"){ }
-        }
 
         submitButton = findViewById(R.id.submitButton)
 
@@ -62,35 +57,57 @@ class FootBeatActivity : AppCompatActivity() {
             } else {
                 calculateCadence(height, minutes, seconds)
             }
-            val stride_length = height * 0.415
-            val pace = minutes + (seconds/60)
-            val stride = 1 / (1000 * stride_length * pace)
+
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun calculateCadence(height:Int, minutes:Int, seconds:Int) {
+
         val stride_length = height * 0.45
         val pace = minutes + (seconds/60)
         val stride = 1 / (1000 * stride_length * pace)
 
-        fun readCsv(inputStream: InputStream): List<Song> {
-            val reader = inputStream.bufferedReader()
-            val header = reader.readLine()
-            return reader.lineSequence()
-                .filter { it.isNotBlank() }
-                .map {
-                    val (track_id,
-                        track_name,
-                        track_artist,
-                        track_album_id,
-                        tempo,
-                        duration_ms) = it.split(',', ignoreCase = false)
-                    Song(track_id, track_name)
-                }.toList()
-        }
-        val movies = readCsv(/*Open a stream to CSV file*/)
+        val csvResourceId = R.raw.music
+        val inputStream: InputStream = resources.openRawResource(csvResourceId)
 
-        val countAsText = "HI"
-        message!!.text = String.format("You touched the droid %s", countAsText)
+        val recommendation = findClosestTrack(readCsv(inputStream), stride/2)
+
+        if (songTitleTextView == null || bpmTextView == null){
+            songTitleTextView!!.text = "Not found"
+            bpmTextView!!.text = "---"
+        } else {
+            songTitleTextView!!.text = String.format(recommendation!!.track_name)
+            bpmTextView!!.text = String.format(recommendation.tempo.toString())
+        }
+
+    }
+
+    fun readCsv(inputStream: InputStream): List<Song> {
+        val reader = inputStream.bufferedReader()
+        val header = reader.readLine()
+
+        val trackList = mutableListOf<Song>()
+        var line: String?
+
+        while (reader.readLine().also { line = it } != null) {
+            val columns = line!!.split(",")
+
+            val track = Song(
+                track_id = columns[1],
+                track_name = columns[2],
+                track_artist = columns[3],
+                track_album_id = columns[4],
+                tempo = columns[5].toDouble(),
+                duration_ms = columns[6].toInt()
+            )
+
+            trackList.add(track)
+        }
+        return trackList
+    }
+
+    fun findClosestTrack(trackList: List<Song>, targetTempo: Double): Song? {
+        return trackList.minByOrNull { abs(it.tempo - targetTempo) }
     }
 }
