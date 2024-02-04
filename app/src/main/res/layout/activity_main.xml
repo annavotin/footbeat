@@ -22,8 +22,8 @@
             app:layout_constraintEnd_toEndOf="parent"/>
     <EditText
             android:id="@+id/editTextHeight"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="370dp"
+            android:layout_height="48dp"
             android:hint="Height"
             app:layout_constraintTop_toBottomOf="@id/textViewHeightLabel"
             app:layout_constraintStart_toStartOf="parent"
@@ -42,7 +42,7 @@
     <LinearLayout
             android:id="@+id/linearLayoutPace"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@id/textViewPaceLabel"
             app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +52,7 @@
         <EditText
                 android:id="@+id/editTextMinutes"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:hint="Minutes"
                 android:inputType="number"
@@ -62,12 +62,22 @@
         <EditText
                 android:id="@+id/editTextSeconds"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:hint="Seconds"
                 android:inputType="numberDecimal"
                 app:layout_constraintStart_toEndOf="@+id/editTextMinutes" android:autofillHints=""/>
     </LinearLayout>
+
+    <TextView
+            android:id="@+id/errorMessageLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Error: please check that all of the text fields are filled"
+            android:textColor="#FF0000"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Button to Submit -->
     <Button
@@ -77,7 +87,7 @@
             android:text="Submit"
             app:layout_constraintTop_toBottomOf="@id/linearLayoutPace"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="16dp"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
